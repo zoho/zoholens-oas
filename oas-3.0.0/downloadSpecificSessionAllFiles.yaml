@@ -1,0 +1,98 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - downloadSpecificSessionAllFiles
+  description: Download all files of a specific Zoho Lens session
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/session/files/download_link:
+    get:
+      summary: Get download link for all session files
+      description: Get a download link for all files (recordings, screenshots, notes, chats) of a specific session.
+      operationId: downloadSpecificSessionAllFiles
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: sys_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: >
+            Session primary key (numeric ID). This is NOT the session ID
+            that the user provides. The user will give a session ID
+            (9-10 digits). Resolve the corresponding sys_id by calling
+            getSysIdForSessionId with the session ID, or obtain it from
+            the fetchAllSessionsFilesMetadata or fetchCompletedSessions
+            API. Do not prompt the user for sys_id directly. If the
+            sys_id was already fetched for this session ID in the current
+            conversation, reuse it instead of calling again.
+        - name: x-com-zoho-lens-orgid
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+        - name: app_name
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "MCP"
+          description: >
+            The application name, used for tracking. Always pass "MCP".
+            Do not prompt the user for this value.
+        - name: file_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - all
+            default: "all"
+          description: >
+            File type to download. Must be "all" for this API to get
+            the download link for all session files (recordings,
+            screenshots, notes, chats). Do not prompt the user for
+            this value. Always pass "all".
+      responses:
+        "200":
+          description: >
+            Download link returned successfully. Present the link to the
+            user and instruct them to open it in a browser. The user must
+            be logged in to the correct account for the download to work.
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to Zoho Lens sessions

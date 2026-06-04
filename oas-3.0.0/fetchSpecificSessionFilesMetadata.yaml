@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchSpecificSessionFilesMetadata
+  description: Fetch file metadata for a specific Zoho Lens session
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v1/report/session_files/details:
+    get:
+      summary: Fetch specific session files metadata
+      description: Fetch file metadata (recordings, screenshots, notes, chats) for a specific session.
+      operationId: fetchSpecificSessionFilesMetadata
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: sys_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: >
+            Session primary key (numeric ID). This is NOT the session ID
+            that the user provides. The user will give a session ID
+            (9-10 digits). Resolve the corresponding sys_id by calling
+            getSysIdForSessionId with the session ID, or obtain it from
+            the fetchAllSessionsFilesMetadata API. Do not prompt the user
+            for sys_id directly. Ask the user which session they want
+            file details for if not already clear from context. If the
+            sys_id was already fetched for this session ID in the current
+            conversation, reuse it instead of calling again.
+        - name: file_type
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "recordings,screenshots,notes,chats"
+          description: >
+            Comma-separated list of file types to fetch details for.
+            Defaults to "recordings,screenshots,notes,chats".
+            Do not prompt the user for this value.
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: Fetched session files details successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to Zoho Lens sessions

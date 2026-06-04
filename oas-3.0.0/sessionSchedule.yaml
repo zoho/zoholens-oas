@@ -1,0 +1,143 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - sessionSchedule
+  description: Schedule a new Zoho Lens session
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/session/schedule:
+    post:
+      summary: Schedule a session
+      description: Schedule a new Zoho Lens remote assistance session.
+      operationId: sessionSchedule
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.CREATE
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mode
+                - title
+                - customer_email
+                - schedule_time
+                - department_id
+              properties:
+                mode:
+                  type: string
+                  default: "SCHEDULE"
+                  description: >
+                    Session mode. Defaults to "SCHEDULE".
+                    Do not prompt the user for this value.
+                title:
+                  type: string
+                  description: >
+                    Title for the scheduled session. Get this from the user.
+                  example: "title sample"
+                notes:
+                  type: string
+                  description: >
+                    Description or notes for the session. Get this from the
+                    user. Optional.
+                  example: "desc sample"
+                customer_email:
+                  type: string
+                  description: >
+                    Email address of the customer to invite to the session.
+                    Get this from the user.
+                  example: "customer@example.com"
+                schedule_time:
+                  type: integer
+                  format: int64
+                  description: >
+                    Scheduled time as epoch timestamp in milliseconds.
+                    Get the date and time from the user and convert to epoch.
+                  example: 1771866029000
+                reminder:
+                  type: integer
+                  description: >
+                    Reminder time in minutes before the session.
+                    Defaults to 0. Options will be 0 (no reminder), 5 (5 minutes before), 10 (10 minutes before), 15 (15 minutes before).
+                    Do not prompt the user for this value.
+                  default: 0
+                utc_offset:
+                  type: string
+                  description: >
+                    UTC offset of the user's timezone.
+                    Do not prompt the user for this value; derive from
+                    the user's timezone.
+                  default: "+05:30"
+                time_zone:
+                  type: string
+                  description: >
+                    Timezone identifier.
+                    Do not prompt the user for this value; derive from
+                    the user's locale/timezone.
+                  default: "Asia/Calcutta"
+                identity:
+                  type: string
+                  description: >
+                    Identity field. Defaults to empty string.
+                    Do not prompt the user for this value.
+                  default: ""
+                department_id:
+                  type: string
+                  description: >
+                    Department ID for the session. Resolved from the
+                    fetchDepartmentsList API (prerequisite). Before
+                    calling this API, call fetchDepartmentsList to
+                    retrieve the list of departments. Present the
+                    departments to the user and ask "For which department
+                    should I schedule the session?". Use the department
+                    selected by the user. If a department was already
+                    selected by the user in a previous query in the same
+                    conversation, reuse that department without calling
+                    fetchDepartmentsList again. Get the session title,
+                    description (notes), customer email, and schedule
+                    time from the user.
+      responses:
+        "200":
+          description: Session scheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.CREATE: Create access to Zoho Lens sessions

@@ -1,0 +1,91 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - getSysIdForSessionId
+  description: Resolve a session ID to its sys_id (session primary key)
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/session/details:
+    get:
+      summary: Get sys_id for a session ID
+      description: Resolve a user-provided session ID to its sys_id.
+      operationId: getSysIdForSessionId
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: session_key
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+$'
+          description: >
+            The session ID (session key) provided by the user. This is
+            the 9-10 digit number visible to customers (e.g.,
+            "926453622"). Do not prompt the user for sys_id; use
+            this parameter with the session ID the user provides.
+            If the sys_id for this session ID was already fetched
+            in the current conversation, do NOT call this API again.
+            Reuse the previously resolved sys_id.
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: >
+            Successfully fetched the sys_id for the given session ID.
+            All downstream APIs such as
+            fetchSpecificSessionFilesMetadata,
+            downloadSpecificSessionAllFiles,
+            downloadSessionRecordings, downloadSessionScreenshots,
+            downloadSessionNotes, and downloadSessionChats require
+            the sys_id (not the session ID).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  representation:
+                    type: string
+                    description: >
+                      The sys_id (session primary key) corresponding to the
+                      provided session ID. Use this value in all downstream
+                      APIs that require sys_id.
+                    example: "5289000000615005"
+                  resource_type:
+                    type: string
+                    description: The API endpoint path that produced this response.
+                    example: "/api/v2/session/details"
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to Zoho Lens sessions

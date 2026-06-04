@@ -1,0 +1,164 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchUserDetails
+  description: Fetch details of the current authenticated Zoho Lens user
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/user:
+    get:
+      summary: Fetch user details
+      description: Fetch details of the current authenticated Zoho Lens user.
+      operationId: fetchUserDetails
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.userapi.READ
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: >
+            Fetched user details successfully. The response includes
+            user role, organization details, license information, and
+            department memberships.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resource_type:
+                    type: string
+                    example: "user"
+                  representation:
+                    type: object
+                    properties:
+                      zuid:
+                        type: string
+                        description: Zoho User ID of the authenticated user.
+                      user_role:
+                        type: integer
+                        description: Numeric role identifier of the user.
+                      role:
+                        type: object
+                        description: Detailed role information including permissions and modules.
+                        properties:
+                          role_id:
+                            type: string
+                          is_editable:
+                            type: boolean
+                          non_editable_role_key:
+                            type: string
+                            description: Role key (e.g., TECHNICIAN, SUPER_ADMIN).
+                          added_by_zuid:
+                            type: string
+                          added_time:
+                            type: string
+                          updated_by_zuid:
+                            type: string
+                          updated_time:
+                            type: string
+                          is_remote_support_allowed:
+                            type: boolean
+                          is_remote_access_allowed:
+                            type: boolean
+                          permissions:
+                            type: array
+                            items:
+                              type: object
+                          modules:
+                            type: array
+                            description: List of modules the user has access to.
+                            items:
+                              type: string
+                            example:
+                              - LENS_SUPPORT
+                              - ORGANIZATION_REPORTS
+                              - REMOTE_SUPPORT_SETTINGS
+                              - ORGANIZATION_SETTINGS
+                      org_details:
+                        type: object
+                        description: Organization details.
+                        properties:
+                          zsoid:
+                            type: integer
+                            description: Organization ID.
+                          org_name:
+                            type: string
+                            description: Organization name.
+                      license:
+                        type: object
+                        description: License information for the user.
+                        properties:
+                          trial_edition:
+                            type: string
+                          license_type:
+                            type: string
+                            description: "License type: FREE, TRIAL, or LICENSED."
+                          days_left:
+                            type: integer
+                            description: Number of days left in trial.
+                          lens_license:
+                            type: object
+                            properties:
+                              edition:
+                                type: string
+                                description: "Edition: FREE, STANDARD, or PROFESSIONAL."
+                              count:
+                                type: integer
+                              is_enabled:
+                                type: boolean
+                              features:
+                                type: array
+                                items:
+                                  type: object
+                      departments:
+                        type: array
+                        description: List of departments the user belongs to.
+                        items:
+                          type: object
+                          properties:
+                            department_id:
+                              type: string
+                            department_name:
+                              type: string
+                            display_name:
+                              type: string
+                            is_system_generated:
+                              type: boolean
+                      preferred_department:
+                        type: string
+                        description: The user's preferred department ID.
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.userapi.READ: Read access to Zoho Lens user data

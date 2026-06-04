@@ -1,0 +1,195 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchAllSessionsFilesMetadata
+  description: Fetch file metadata across all Zoho Lens sessions
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v1/report/session_files/list:
+    get:
+      summary: Fetch all sessions files metadata
+      description: Fetch metadata of all session files (recordings, screenshots, notes, chats) for the department.
+      operationId: fetchAllSessionsFilesMetadata
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: index
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+          description: >
+            Pagination index. Defaults to 1.
+            Do not prompt the user for this value.
+        - name: count
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 20
+          description: >
+            Number of files to fetch per page. Defaults to 20.
+            Do not prompt the user for this value.
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "LS"
+          description: >
+            Session type. Defaults to "LS" for Lens sessions.
+            Do not prompt the user for this value.
+        - name: file_type
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "recordings,screenshots,notes,chats"
+          description: >
+            Comma-separated list of file types to fetch.
+            Defaults to "recordings,screenshots,notes,chats".
+            Do not prompt the user for this value unless the user asks for specific file types.
+        - name: department
+          in: query
+          schema:
+            type: string
+          description: >
+            Department ID to filter session files. Resolved from the
+            fetchDepartmentsList API (prerequisite). Before calling this
+            API, call fetchDepartmentsList to retrieve departments. Ask
+            the user "For which department should I fetch session files?"
+            and use their selection. If a department was already selected
+            by the user in a previous query in the same conversation,
+            reuse that department without calling fetchDepartmentsList
+            again.
+        - name: search_criteria
+          in: query
+          schema:
+            type: string
+            default: "all"
+          description: >
+            Search criteria to filter session files. Defaults to "all".
+            Do not prompt the user for this value.
+            The available options are customer_email, technician_email, title, all
+            Only pass this param if search_value param is also passed.
+        - name: search_value
+          in: query
+          schema:
+            type: string
+          description: >
+            Optional search value to filter session files. If the user
+            specifies a session ID (e.g., "get files for session 193742")
+            or an email address (e.g., "fetch files for xyz@abc.com"),
+            pass that value here. Only prompt the user for this if their
+            query implies a specific session or participant filter.
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: >
+            Fetched session files list successfully. When the user
+            provides a session ID, call getSysIdForSessionId to obtain
+            the sys_id. Use the sys_id in downstream APIs like
+            fetchSpecificSessionFilesMetadata,
+            downloadSpecificSessionAllFiles,
+            downloadSessionRecordings, downloadSessionScreenshots,
+            downloadSessionNotes, and downloadSessionChats. If the
+            sys_id for a session ID was already fetched in this
+            conversation, reuse it.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  representation:
+                    type: object
+                    properties:
+                      session_list:
+                        type: array
+                        description: >
+                          List of sessions with file metadata. Each entry
+                          contains a sys_id (session primary key for use
+                          in other APIs) and a title. Do not rely on
+                          parsing the title to extract session IDs since
+                          users may modify session titles.
+                        items:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                              description: Session date as a Unix timestamp in milliseconds.
+                              example: "1771316082783"
+                            technician_email:
+                              type: string
+                              description: Email address of the technician who conducted the session.
+                              example: "vennila.d@zohocorp.com"
+                            sys_id:
+                              type: string
+                              description: >
+                                Session primary key. Use this value (not the
+                                session ID) when calling downstream APIs such as
+                                fetchSpecificSessionFilesMetadata,
+                                downloadSpecificSessionAllFiles,
+                                downloadSessionRecordings,
+                                downloadSessionScreenshots,
+                                downloadSessionNotes, and
+                                downloadSessionChats.
+                              example: "5289000000583003"
+                            customer_email:
+                              type: string
+                              description: Email address of the customer, or "Customer" if not available.
+                              example: "Customer"
+                            title:
+                              type: string
+                              description: >
+                                Session title.
+                            totalFiles:
+                              type: string
+                              description: Total number of files (recordings, screenshots, notes, chats) available for this session.
+                              example: "3"
+                      has_more:
+                        type: boolean
+                        description: >
+                          Indicates whether more sessions are available
+                          beyond the current page. If true, increment the
+                          index parameter and call again to fetch the next
+                          page.
+                  resource_type:
+                    type: string
+                    description: The API endpoint path that produced this response.
+                    example: "/api/v1/report/session_files/list"
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to Zoho Lens sessions

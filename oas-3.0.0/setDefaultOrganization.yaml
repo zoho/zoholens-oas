@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - setDefaultOrganization
+  description: Set the default organization for the user
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/organizations:
+    put:
+      summary: Set default organization
+      description: Set the default organization for the user.
+      operationId: setDefaultOrganization
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.orgs.UPDATE
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - zsoid
+              properties:
+                zsoid:
+                  type: string
+                  description: >
+                    The organization ID (zsoid) to set as the default
+                    organization. Resolved from the fetchOrganizationsList
+                    API (prerequisite). Before calling this API, call
+                    fetchOrganizationsList to retrieve the list of
+                    organizations. Present the organizations to the user
+                    and ask "Which organization would you like to set as
+                    default?". Use the organization selected by the user.
+                    If an organization was already selected by the user
+                    in a previous query in the same conversation, reuse
+                    that organization without calling
+                    fetchOrganizationsList again.
+                  example: "66290725"
+      responses:
+        "200":
+          description: Default organization set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.orgs.UPDATE: Update access to Zoho Lens organizations

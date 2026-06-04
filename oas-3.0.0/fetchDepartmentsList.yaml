@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchDepartmentsList
+  description: Fetch the list of departments
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v1/init_data/departments:
+    get:
+      summary: Fetch departments list
+      description: To fetch the list of departments in the organization
+      operationId: fetchDepartmentsList
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.userapi.READ
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: Fetched departments list successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.userapi.READ: Read access to Zoho Lens data

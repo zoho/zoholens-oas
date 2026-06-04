@@ -1,0 +1,164 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - sessionReschedule
+  description: Reschedule an existing Zoho Lens session
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/session/schedule:
+    put:
+      summary: Reschedule a session
+      description: Reschedule an existing Zoho Lens scheduled session.
+      operationId: sessionReschedule
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.UPDATE
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mode
+                - title
+                - customer_email
+                - schedule_time
+                - schedule_id
+                - department_id
+              properties:
+                mode:
+                  type: string
+                  default: "RESCHEDULE"
+                  description: >
+                    Session mode. Always "RESCHEDULE" for this API.
+                    Do not prompt the user for this value.
+                title:
+                  type: string
+                  description: >
+                    Title for the session. Use the existing title from
+                    fetchScheduledSessionDetail unless the user wants
+                    to change it.
+                  example: "Test schedule"
+                notes:
+                  type: string
+                  description: >
+                    Description or notes for the session. Use the existing
+                    notes unless the user wants to change them. Optional.
+                  example: "session notes"
+                customer_email:
+                  type: string
+                  description: >
+                    Email address of the customer. This field CANNOT be
+                    modified once a session is scheduled. Always use the
+                    existing value from fetchScheduledSessionDetail.
+                    Do not ask the user to change this. Note:
+                    customer_email cannot be modified once scheduled.
+                  example: "customer@example.com"
+                schedule_time:
+                  type: integer
+                  format: int64
+                  description: >
+                    New scheduled time as epoch timestamp in milliseconds.
+                    Get the new date and time from the user and convert
+                    to epoch.
+                  example: 1772268326000
+                reminder:
+                  type: integer
+                  description: >
+                    Reminder time in minutes before the session.
+                    Defaults to 0. Options will be 0 (no reminder), 5 (5 minutes before), 10 (10 minutes before), 15 (15 minutes before).
+                    Do not prompt the user for this value.
+                  default: 0
+                utc_offset:
+                  type: string
+                  description: >
+                    UTC offset of the user's timezone.
+                    Do not prompt the user for this value; derive from
+                    the user's timezone.
+                  default: "+05:30"
+                time_zone:
+                  type: string
+                  description: >
+                    Timezone identifier.
+                    Do not prompt the user for this value; derive from
+                    the user's locale/timezone.
+                  default: "Asia/Calcutta"
+                identity:
+                  type: string
+                  description: >
+                    Identity token for the session. Use the existing value
+                    from fetchScheduledSessionDetail.
+                    Do not prompt the user for this value.
+                schedule_id:
+                  type: string
+                  description: >
+                    The scheduled session ID to reschedule. Obtained from
+                    a previous API response (e.g., fetchOngoingSessionsList
+                    or fetchScheduledSessionDetail). PREREQUISITE: Call
+                    fetchScheduledSessionDetail first to retrieve the
+                    current session details. Present the details to the
+                    user and ask "What would you like to modify? (title,
+                    description, time, date, timezone, reminder)". When
+                    sending the request, always include ALL fields - both
+                    modified and original unmodified values from
+                    fetchScheduledSessionDetail.
+                  example: "5289000000594017"
+                department_id:
+                  type: string
+                  description: >
+                    Department ID for the session. Reuse the department_id
+                    fetched from fetchScheduledSessionDetail API. If a
+                    department was already selected by the user in a
+                    previous query in the same conversation, reuse that
+                    department without calling fetchDepartmentsList again.
+                assignee_zuid:
+                  type: string
+                  description: >
+                    Zoho User ID of the assignee. Use the context_owner_zuid
+                    from fetchScheduledSessionDetail. Do not prompt the user for this value.
+                    Do not change the assignee when rescheduling; 
+                    always keep the same assignee as the original session.
+      responses:
+        "200":
+          description: Session rescheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.UPDATE: Update access to Zoho Lens sessions

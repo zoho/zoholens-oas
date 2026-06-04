@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchOngoingSessionsList
+  description: Fetch the list of ongoing sessions
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/session/schedule:
+    get:
+      summary: Fetch ongoing sessions list
+      description: Fetch the list of ongoing Zoho Lens sessions.
+      operationId: fetchOngoingSessionsList
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: index
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination index. Starts at 0 for the first request. When the user asks to fetch more sessions, increment the previous index value by 21.
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Number of sessions to fetch. Always pass 20. Do not prompt the user for this value.
+        - name: department_id
+          in: query
+          schema:
+            type: string
+          description: >
+            Department ID to filter sessions. Resolved from the
+            fetchDepartmentsList API (prerequisite). Present the list
+            of departments to the user and use their selection. If the
+            user does not select any department, use the default
+            department. If a department was already selected earlier
+            in the conversation, reuse it.
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: Fetched ongoing sessions list successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to ongoing sessions

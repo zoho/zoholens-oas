@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchOrgMembersList
+  description: Fetch the list of organization members
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/org_members:
+    get:
+      summary: Fetch organization members list
+      description: >
+        Fetch the list of members in the current organization.
+      operationId: fetchOrgMembersList
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.userapi.READ
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID.
+        - name: department_id
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d+$'
+          description: Unique ID of the department. Resolved from the fetchDepartmentsList API. Present the list of departments to the user and use their selection. If the user does not select any department, use the default department.
+      responses:
+        "200":
+          description: Fetched organization members list successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.userapi.READ: Read access to Zoho Lens data

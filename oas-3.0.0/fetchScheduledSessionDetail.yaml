@@ -1,0 +1,69 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchScheduledSessionDetail
+  description: Fetch details of a specific scheduled session
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/session/schedule/{schedule_id}:
+    get:
+      summary: Fetch scheduled session detail
+      description: Fetch details of a specific scheduled session.
+      operationId: fetchScheduledSessionDetail
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: schedule_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: >
+            The scheduled session ID. Obtained from a previous API
+            response (e.g., fetchOngoingSessionsList). Ask the user
+            which scheduled session they want details for if not
+            already clear from context.
+          example: "5289000000594017"
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: Fetched scheduled session detail successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to Zoho Lens sessions

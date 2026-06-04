@@ -1,0 +1,89 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchWorkInstructionsList
+  description: Fetch the list of work instructions
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v1/workflow/fetchall:
+    get:
+      summary: Fetch work instructions list
+      description: Fetch the list of work instructions for a department.
+      operationId: fetchWorkInstructionsList
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.READ
+      parameters:
+        - name: department_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: >
+            Department ID to filter work instructions. Resolved from the
+            fetchDepartmentsList API (prerequisite). Before calling this
+            API, call fetchDepartmentsList to retrieve the list of
+            departments. Present the departments to the user and ask
+            "For which department should I fetch work instructions?".
+            Use the department selected by the user. If a department
+            was already selected by the user in a previous query in the
+            same conversation, reuse that department without calling
+            fetchDepartmentsList again.
+        - name: index
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: >
+            Pagination index. Defaults to 0.
+            Do not prompt the user for this value.
+        - name: include_drafts
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: >
+            Whether to include draft work instructions. Defaults to false.
+            Do not prompt the user for this value.
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: Fetched work instructions list successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.READ: Read access to Zoho Lens data

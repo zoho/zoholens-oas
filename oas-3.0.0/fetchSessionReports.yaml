@@ -1,0 +1,132 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - fetchSessionReports
+  description: Fetch session reports
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /api/v2/reports/sessions:
+    post:
+      summary: Fetch session reports
+      description: Fetch session reports for the organization.
+      operationId: fetchSessionReports
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.userapi.READ
+      parameters:
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - fromdate
+                - todate
+                - sortbykey
+                - sortbydirection
+                - department_id
+                - index
+                - count
+              properties:
+                type:
+                  type: string
+                  default: "LS"
+                  description: >
+                    Session type. Defaults to "LS" for Lens sessions.
+                    Do not prompt the user for this value.
+                fromdate:
+                  type: integer
+                  format: int64
+                  description: >
+                    Start date as epoch timestamp in milliseconds. Get the start date from the client.
+                  example: 1771180200000
+                todate:
+                  type: integer
+                  format: int64
+                  description: >
+                    End date as epoch timestamp in milliseconds. Get the end date from the client.
+                  example: 1771871399999
+                sortbykey:
+                  type: string
+                  default: "start_time"
+                  description: >
+                    Key to sort the results by. Defaults to "start_time".
+                    Do not prompt the user for this value.
+                sortbydirection:
+                  type: string
+                  default: "DESC"
+                  description: >
+                    Sort direction. ASC for ascending, DESC for descending.
+                department_id:
+                  type: string
+                  description: >
+                    Department ID to filter session reports. Resolved from
+                    the fetchDepartmentsList API (prerequisite). Before
+                    calling this API, call fetchDepartmentsList to retrieve
+                    departments. Present the departments to the user and
+                    ask "For which department should I fetch session
+                    reports?". Use the department selected by the user.
+                    If a department was already selected by the user in a
+                    previous query in the same conversation, reuse that
+                    department without calling fetchDepartmentsList again.
+                  example: "591859000000847021"
+                index:
+                  type: integer
+                  description: >
+                    Pagination index. Starts at 0 for the first request.
+                  default: 0
+                count:
+                  type: integer
+                  description: >
+                    Number of session reports to fetch per page.
+                  default: 20
+      responses:
+        "200":
+          description: Fetched session reports successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: >
+                  The response contains session report data. Note that
+                  the duration field in the response represents the
+                  session duration in milliseconds. Convert it to a
+                  human-readable format (e.g., minutes and seconds)
+                  before presenting it to the user.
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.userapi.READ: Read access to Zoho Lens data

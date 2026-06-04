@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: Zoho Lens - sessionStart
+  description: Start a new Zoho Lens session
+  version: 1.0.0
+servers:
+  - url: https://lens.zoho.{dc}
+    description: Zoho Lens API server URL for your account region.
+    variables:
+      dc:
+        enum:
+          - com
+          - eu
+          - in
+          - com.au
+          - com.cn
+          - jp
+          - uk
+          - sa
+          - sg
+          - ae
+        default: com
+        description: The data center domain corresponding to the account's region.
+paths:
+  /lens-start:
+    post:
+      summary: Start a session
+      description: Start a new Zoho Lens remote assistance session.
+      operationId: sessionStart
+      security:
+        - iam-oauth2-schema:
+          - ZohoLens.sessionapi.CREATE
+      parameters:
+        - name: department_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: >
+            Department ID for the session. Resolved from the
+            fetchDepartmentsList API (prerequisite). Before calling
+            this API, call fetchDepartmentsList to retrieve the list
+            of departments. Present the departments to the user and
+            ask "For which department should I start a session?".
+            Use the department selected by the user. If a department
+            was already selected in an earlier query within the same
+            conversation, reuse that department without calling
+            fetchDepartmentsList again.
+        - name: src
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "MCP"
+          description: >
+            Source of the session request. Defaults to "MCP".
+            Do not prompt the user for this value.
+        - name: x-com-zoho-lens-orgid
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Zoho Lens Organization ID
+      responses:
+        "200":
+          description: >
+            Session started successfully. The response contains a
+            viewer_url. Open this viewer_url in a new tab in the browser.
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: Internal Server Error
+components:
+  securitySchemes:
+    iam-oauth2-schema:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.zoho.com/oauth/v2/auth
+          tokenUrl: https://accounts.zoho.com/oauth/v2/token
+          scopes:
+            ZohoLens.sessionapi.CREATE: Create access to Zoho Lens sessions
