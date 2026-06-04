@@ -17,7 +17,7 @@ The OpenAPI Specification (OAS) is a standardized format for documenting RESTful
 
 The repository is organized into the following sections:
 
-- **`ZohoLens/`**: Contains the OAS files for Zoho Lens APIs.
+- **`oas-3.0.0/`**: Contains the OAS files for Zoho Lens APIs.
 
 ### Session Management
 
@@ -67,7 +67,7 @@ The repository is organized into the following sections:
 ## **Getting Started**
 
 ### **1. Explore OAS Files**
-1. Navigate to the `ZohoLens/` folder in this repository.
+1. Navigate to the `oas-3.0.0/` folder in this repository.
 2. Select the OAS file relevant to your use case (e.g., `sessionSchedule.yaml` for scheduling sessions).
 3. Use tools like Swagger's API Hub or Postman to import and explore these files.
 
