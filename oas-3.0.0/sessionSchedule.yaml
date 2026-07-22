@@ -107,6 +107,14 @@ paths:
                     Identity field. Defaults to empty string.
                     Do not prompt the user for this value.
                   default: ""
+                src:
+                  type: string
+                  enum:
+                    - MCP
+                  default: MCP
+                  description: >
+                    Tracking source. Always set to "MCP".
+                    Do not prompt the user for this value.
                 department_id:
                   type: string
                   description: >
