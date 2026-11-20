@@ -35,10 +35,9 @@ paths:
           in: query
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
           description: >
-            Session primary key (numeric ID). This is NOT the session ID
+            Session primary key. This is NOT the session ID
             that the user provides. The user will give a session ID
             (9-10 digits). Resolve the corresponding sys_id by calling
             getSysIdForSessionId with the session ID, or obtain it from
